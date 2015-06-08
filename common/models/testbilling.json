@@ -1,0 +1,26 @@
+{
+  "name": "testbilling",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "bill_billingid": {
+      "type": "number",
+      "required": true,
+      "id" :true
+    },
+    "bill_totalpayment": {
+      "type": "number"
+    },
+    "bill_createddate": {
+      "type": "date",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": []
+}

@@ -1,0 +1,171 @@
+var expect = require('chai').expect;
+var appCopy = require('../common/lib/appCopy.js');
+
+describe('Test suite for appCopy.js',function(){
+	it('should not be null',function(){
+		//console.log('should not be null');
+		expect(appCopy).not.to.equal(null);
+	});
+
+	//mock data
+	var error = null;
+	var results = [{ 
+					 bill_billingid: 41929,
+				     bill_createddate: new Date('Thu Jan 02 2014 00:00:00 GMT+0530 (India Standard Time)'),
+				     bill_totalpayment: 8000 },
+				   { bill_billingid: 41929,
+				     bill_createddate: new Date('Thu Jan 02 2014 00:00:00 GMT+0530 (India Standard Time)'),
+				     bill_totalpayment: 8000 }
+			    ]; 
+
+	var fields = [{
+					catalog: 'def',
+				    db: 'nodetest',
+				    table: 'testbilling',
+				    orgTable: 'testbilling',
+				    name: 'bill_billingid',
+				    orgName: 'bill_billingid',
+				    charsetNr: 63,
+				    length: 11,
+				    type: 3,
+				    flags: 20483,
+				    decimals: 0,
+				    default: undefined,
+				    zeroFill: false,
+				    protocol41: true },
+				  { catalog: 'def',
+				    db: '',
+				    table: '',
+				    orgTable: '',
+				    name: 'bill_createddate',
+				    orgName: '',
+				    charsetNr: 63,
+				    length: 10,
+				    type: 10,
+				    flags: 128,
+				    decimals: 0,
+				    default: undefined,
+				    zeroFill: false,
+				    protocol41: true },
+				  { catalog: 'def',
+				    db: 'nodetest',
+				    table: 'testbilling',
+				    orgTable: 'testbilling',
+				    name: 'bill_totalpayment',
+				    orgName: 'bill_totalpayment',
+				    charsetNr: 63,
+				    length: 20,
+				    type: 246,
+				    flags: 0,
+				    decimals: 4,
+				    default: undefined,
+				    zeroFill: false,
+				    protocol41: true } 
+			    ];
+
+    it('should have data',function(done){
+		//console.log('should have data');
+		appCopy.initApp(function(data){
+			expect(Object.keys(data).length).to.equal(4);
+			// error = data.error;
+			// results = data.results;
+			// fields = data.fields; 
+			done();
+		});
+	});
+
+	it('should not raise an error from query',function () {
+		//console.log('should not raise an error from query');
+		appCopy.connectionOnQuery(error,results,fields,function (_res) {
+			expect(_res.error).to.equal(null);
+		});
+	}); 
+
+	it('should return 3 columns from query',function () {
+		//console.log('should return 3 columns from query');
+		appCopy.connectionOnQuery(error,results,fields,function (_res) {
+			expect(_res.fields.length).to.equal(3);
+		});
+	}); 
+
+	it('should return 2 rows from query',function () {
+		//console.log('should return 2 rows from query');
+		appCopy.connectionOnQuery(error,results,fields,function(_res){
+			expect(_res.results.length).to.equal(2);
+		});
+	}); 
+
+	it('should have og name of first column from query as bill_billingid',function () {
+		//console.log('should have og name of first column from query as bill_billingid');
+		appCopy.connectionOnQuery(error,results,fields,function (_res) {
+			expect(_res.fields[0].orgName).to.equal('bill_billingid');
+		});
+	}); 
+
+	it('should have name of second column from query as bill_createddate',function () {
+		//console.log('should have name of second column from query as bill_createddate');
+		appCopy.connectionOnQuery(error,results,fields,function (_res) {
+			expect(_res.fields[1].name).to.equal('bill_createddate');
+		});
+	}); 
+
+	it('should have og name of third column from query as bill_totalpayment',function () {
+		//console.log('should have og name of third column from query as bill_totalpayment');
+		appCopy.connectionOnQuery(error,results,fields,function (_res) {
+			expect(_res.fields[2].orgName).to.equal('bill_totalpayment');
+		});
+	}); 
+
+	it('should have 16000 as the bill_totalpayment for the month of Jan',function () {
+		//console.log('should have 16000 as the bill_totalpayment for the month of Jan');
+		appCopy.connectionOnQuery(error,results,fields,function (_res) {
+			expect(_res.billDimensions.filter(function(val,i){return val.month === 'Jan';})[0]['totalAmount']).to.equal(16000);
+		});
+	});
+
+	it('should not have data for months other than Jan',function () {
+		//console.log('should not have data for months other than Jan');
+		appCopy.connectionOnQuery(error,results,fields,function(_res){
+			expect(_res.billDimensions.filter(function(val,i){return val.month !== 'Jan';}).length).to.equal(0);	
+		});
+	}); 
+
+
+	it('should show Jan as the Highest Month Of Year',function(){
+		//console.log('should show Jan as the Highest Month Of Year');
+		appCopy.getHighestMonthOfYear(results,function (_res) {
+			expect(appCopy.months[_res.highestMonthOfYear]).to.equal('Jan');
+		});
+	});
+
+	it('should show 16000 as the Highest Month Of Year Value',function(){
+		//console.log('should show 16000 as the Highest Month Of Year Value');
+		appCopy.getHighestMonthOfYear(results,function (_res) {
+			expect(_res.highestMonthOfYearValue).to.equal(16000);
+		});
+	});
+
+
+	it('should show Jan as the Lowest Month Of Year',function(){
+		//console.log('should show Jan as the Lowest Month Of Year');
+		appCopy.getLowestMonthOfYear(results,function (_res) {
+			expect(appCopy.months[_res.lowestMonthOfYear]).to.equal('Jan');
+		});
+	});
+
+	it('should show 16000 as the Lowest Month Of Year Value',function(){
+		//console.log('should show 16000 as the Lowest Month Of Year Value');
+		var _res = appCopy.getLowestMonthOfYear(results,function (_res) {
+			expect(_res.lowestMonthOfYearValue).to.equal(16000);
+		});
+	});
+
+	it('should return proper multiplication results',function(){
+		//console.log('should return proper multiplication results');
+		expect(appCopy.multiply(1,3)).to.equal(3);
+		expect(appCopy.multiply(2,3)).to.equal(6);
+		expect(appCopy.multiply(3,3)).to.equal(9);
+		// expect(appCopy.multiply(4,3)).to.equal(16);
+	});
+});
+
